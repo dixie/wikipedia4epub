@@ -1,4 +1,45 @@
-module Web.Firefox where
-import Database.HDBC
-import Database.HDBC.Sqlite3
+module Web.Firefox (listPlacesFiles, listHistoryURLs, listAllHistoryURLs) 
+where
+import Database.HDBC (disconnect, fromSql, quickQuery')
+import Database.HDBC.Sqlite3 (connectSqlite3, setBusyTimeout)
+import Network.URL (importURL, URL)
+import Data.List (isSuffixOf)
+import Control.Monad (forM)
+import Data.Maybe (catMaybes)
+import System.Directory (doesDirectoryExist, getDirectoryContents, getHomeDirectory)
+import System.FilePath ((</>))
 
+firefoxDirs = [ ".mozilla" ]
+placesFile = "places.sqlite"
+
+listPlacesFiles :: IO [FilePath]
+listPlacesFiles = do
+   homeDir <- getHomeDirectory
+   xs <- mapM (\x -> getRecursiveContents (homeDir </> x)) firefoxDirs
+   return $ filter (placesFile `isSuffixOf`) (concat xs)
+
+listAllHistoryURLs :: IO [URL]
+listAllHistoryURLs = do
+   places <- listPlacesFiles 
+   xs <- mapM (listHistoryURLs) places
+   return $ concat xs
+
+listHistoryURLs :: FilePath -> IO [URL]
+listHistoryURLs name = do
+   conn <- connectSqlite3 name
+   -- setBusyTimeout conn 100000
+   xs <- quickQuery' conn "select url from moz_places order by last_visit_date desc" []
+   let ys = map (fromSql . head) xs :: [String]
+   return $ catMaybes $ map (importURL) ys
+
+getRecursiveContents :: FilePath -> IO [FilePath]
+getRecursiveContents topdir = do
+  names <- getDirectoryContents topdir
+  let properNames = filter (`notElem` [".", ".."]) names
+  paths <- forM properNames $ \name -> do
+    let path = topdir </> name
+    isDirectory <- doesDirectoryExist path
+    if isDirectory
+      then getRecursiveContents path
+      else return [path]
+  return (concat paths)

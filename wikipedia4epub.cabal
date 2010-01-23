@@ -19,10 +19,11 @@ Cabal-Version:   >= 1.6
     
 Library
   Build-Depends:   ghc,
-                   base         < 5,
+                   base < 5,
                    filepath,
                    haskell98,
-                   old-time,
+                   url,
+                   directory,
                    utf8-string,
                    epub,
                    bytestring,
