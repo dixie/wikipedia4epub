@@ -14,6 +14,6 @@ main = do
 
 downloadArticleI x = do
    putStrLn $ "Fetching : " ++ (exportURL x)
-   (t,c) <- fetchPrintArticle x
+   (WikiArticleHTML t c) <- fetchArticle x
    let filename = "output" </> (t ++ ".html") 
    withBinaryFile filename WriteMode (\h -> hPutStr h c)
