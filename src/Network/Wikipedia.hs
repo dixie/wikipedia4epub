@@ -18,7 +18,7 @@ data WikiArticle = WikiArticleHTML { waTitle :: String, waContent :: String }
                  | WikiArticleSRC  { waTitle :: String, waContent :: String } deriving (Show, Ord, Eq)
 
 isArticleURL :: URL -> Bool
-isArticleURL (URL (Absolute (Host (HTTP False) xs Nothing)) ph []) = (xs =~ ".*[.]wikipedia.org$") && (ph =~ "wiki/.*" )
+isArticleURL (URL (Absolute (Host (HTTP False) xs Nothing)) ph []) = (xs =~ ".*[.]wikipedia.org$") && (ph =~ "wiki/[^:/]+$" )
 isArticleURL _ = False
 
 getArticleTitle :: URL -> String
