@@ -1,6 +1,7 @@
 module Network.Wikipedia ( isArticleURL
                          , WikiArticle(..)
                          , getArticleTitle
+                         , getArticleLinks
                          , fetchPrintArticle
                          , fetchRawArticle
                          , fetchArticle)
@@ -10,6 +11,8 @@ import Text.Regex.Base
 import Text.Regex.PCRE
 import Network.HTTP
 import Text.HTML.TagSoup
+import Data.List (nub)
+import Data.Maybe (catMaybes)
 
 data WikiArticle = WikiArticleHTML { waTitle :: String, waContent :: String } 
                  | WikiArticleSRC  { waTitle :: String, waContent :: String } deriving (Show, Ord, Eq)
@@ -21,6 +24,12 @@ isArticleURL _ = False
 getArticleTitle :: URL -> String
 getArticleTitle x | isArticleURL x = tail $ dropWhile (/='/') (url_path x)
                   | otherwise      = ""
+
+getArticleLinks :: WikiArticle -> [URL]
+getArticleLinks xs = let inTags = parseTags (waContent xs)
+                         aTags = filter (isTagOpenName "a") inTags
+                         hrefs = map (fromAttrib "href") aTags 
+                     in catMaybes $ map (importURL) $ nub $ filter (\x -> x =~ "^/wiki/[^:/]+$") hrefs
                     
 -- http://en.wikipedia.org/w/index.php?title=Computer&printable=yes
 articleURL2PrintURL :: URL -> URL
