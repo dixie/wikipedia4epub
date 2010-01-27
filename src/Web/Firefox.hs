@@ -20,14 +20,16 @@ listPlacesFiles = do
 
 listAllHistoryURLs :: IO [URL]
 listAllHistoryURLs = do
+   putStrLn $ "Please close your Firefox if you see this message longer than 5 seconds..."
    places <- listPlacesFiles 
    xs <- mapM (listHistoryURLs) places
    return $ concat xs
 
 listHistoryURLs :: FilePath -> IO [URL]
 listHistoryURLs name = do
+   putStrLn $ "Going to connect on Firefox SQLite DB: " ++ name
    conn <- connectSqlite3 name
-   -- setBusyTimeout conn 100000
+   setBusyTimeout conn 10000
    xs <- quickQuery' conn "select url from moz_places order by last_visit_date desc" []
    let ys = map (fromSql . head) xs :: [String]
    return $ catMaybes $ map (importURL) ys

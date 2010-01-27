@@ -1,5 +1,7 @@
 import Text.HTML.TagSoup
 import System.Environment
+import System.Directory
+import System.FilePath
 import Wikipedia4epub.Commands
 import System.IO 
 
@@ -17,5 +19,15 @@ usageHelp name = putStrLn $ "Usage: " ++ name ++ " [<Title Name of new e-book>]"
 
 firefox2epub bookName = do
   xs <- wiki4e_listFirefoxURLs
-  wiki4e_fetchArticles "wiki" xs
+  tmpDir <- getTemporaryDirectory
+  let tmpDirFetch    = tmpDir </> "wik4e_fetch"     
+  let tmpDirSanitize = tmpDir </> "wiki4e_sanitize"
+  createDirectoryIfMissing True tmpDirFetch
+  createDirectoryIfMissing True tmpDirSanitize
+  putStrLn $ "Fetching "++(show $ length xs)++" Articles..."
+  wiki4e_fetchArticles tmpDirFetch xs
+  putStrLn "Sanitize Articles..."
+  wiki4e_sanitizeArticle tmpDirFetch tmpDirSanitize
+  putStrLn "Constructing EPUB..."
+  wiki4e_createEpub bookName tmpDirSanitize "wiki"
   putStrLn "Done."
