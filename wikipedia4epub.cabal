@@ -40,6 +40,6 @@ Library
   Extensions:      CPP, PatternGuards
   Ghc-Options:      -Wall -fno-warn-orphans
 
-Executable wiki4e-fetch-firefox
+Executable wiki4e-firefox-epub
   Hs-Source-Dirs:  src
-  Main-Is:         wiki4e-fetch-firefox.hs
+  Main-Is:         wiki4e-firefox-epub.hs
