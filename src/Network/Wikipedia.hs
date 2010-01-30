@@ -45,8 +45,15 @@ articleURL2RawURL xs | isArticleURL xs = URL (url_type xs) "w/index.php" [("titl
 
 sanitizeArticle :: WikiArticle -> WikiArticle
 sanitizeArticle xs = let inTags = parseTags (waContent xs)
-                         outTags = filterTags "img" $ filterTags "div" $ filterTags "link" $ filterTags "script" inTags
+                         outTags = processTags $ filterTags "img" $ filterTags "div" $ filterTags "link" $ filterTags "script" inTags
                      in WikiArticleHTML (waTitle xs) (renderTags outTags)
+
+processTags xs = map (removeEmptyAttr) xs
+   where
+     removeEmptyAttr t@(TagOpen s xs) | null s        = t
+                                      | head s == '!' = t
+                                      | otherwise     = TagOpen s (filter (not . null . snd) xs) 
+     removeEmptyAttr t = t
 
 filterTags tn [] = []
 filterTags tn (x:xs) | isTagOpenName tn x  = filterTags tn $ dropWhile (not . isTagCloseName tn) xs
