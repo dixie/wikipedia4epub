@@ -68,7 +68,7 @@ wiki4e_createEpub bookName srcDir = do
 loadArticleFile :: FilePath -> FilePath -> IO BookItem
 loadArticleFile bookDir fname = do
    cs <- B.readFile fname
-   return (BookItem ("http://localhost/"++name) bfile cs opsMediatype (Just (ChapterMetadata name))) 
+   return (BookItem name bfile cs opsMediatype (Just (ChapterMetadata name))) 
    where
       bfile = bookDir </> name
       name = takeFileName $ normalise fname

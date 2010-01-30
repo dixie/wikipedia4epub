@@ -8,6 +8,7 @@ module Network.Wikipedia ( isArticleURL
                          , fetchArticle)
 where
 import Network.URL
+import Network.URI
 import Text.Regex.Posix
 import Text.Regex.Base
 import Network.HTTP
