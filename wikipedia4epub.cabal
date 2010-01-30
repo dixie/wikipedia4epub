@@ -2,15 +2,15 @@ Name:            wikipedia4epub
 Version:         0.0.1
 License:         BSD3
 License-File:    LICENSE
-Synopsis:        Wikipedia EPUB E-Book command from Firefox history.
+Synopsis:        Wikipedia EPUB E-Book construction from Firefox history.
 Author:          Radoslav Dorcik <radoslav.dorcik@gmail.com>
 Maintainer:      radoslav.dorcik@gmail.com
 Description:     
   .
-  Wikipedia EPUB E-Book Construction from Firefox History.
+  Wikipedia EPUB E-Book construction from Firefox History.
   It dumps history and select only wikipedia articles, fetch
-  thier printable versions and construb EPUB book for E-Book
-  readers.
+  them and strip thier content before put into EPUB book
+  for E-Book readers.
   .
 Category:        Text
 Stability:       experimental
@@ -21,12 +21,11 @@ Library
   Build-Depends:   ghc,
                    base < 5,
                    filepath,
+                   bytestring,
                    haskell98,
                    url,
                    directory,
-                   utf8-string,
                    epub,
-                   bytestring,
                    regex-posix,
                    network,
                    regex-base,
