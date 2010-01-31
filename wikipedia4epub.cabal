@@ -2,6 +2,7 @@ Name:            wikipedia4epub
 Version:         0.0.1
 License:         BSD3
 License-File:    LICENSE
+Homepage:        http://rampa.sk/static/wikipedia4epub.html
 Synopsis:        Wikipedia EPUB E-Book construction from Firefox history.
 Author:          Radoslav Dorcik <radoslav.dorcik@gmail.com>
 Maintainer:      radoslav.dorcik@gmail.com
