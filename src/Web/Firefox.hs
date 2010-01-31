@@ -9,7 +9,7 @@ import Data.Maybe (catMaybes, mapMaybe)
 import System.Directory (doesDirectoryExist, getDirectoryContents, getHomeDirectory)
 import System.FilePath ((</>))
 
-firefoxDirs = [ ".mozilla" ]
+firefoxDirs = [ ".mozilla", ".mozilla-firefox" ]
 placesFile = "places.sqlite"
 timeoutFox = 5
 
@@ -37,12 +37,15 @@ listHistoryURLs name = do
 
 getRecursiveContents :: FilePath -> IO [FilePath]
 getRecursiveContents topdir = do
-  names <- getDirectoryContents topdir
-  let properNames = filter (`notElem` [".", ".."]) names
-  paths <- forM properNames $ \name -> do
-    let path = topdir </> name
-    isDirectory <- doesDirectoryExist path
-    if isDirectory
-      then getRecursiveContents path
-      else return [path]
-  return (concat paths)
+  isDirectory <- doesDirectoryExist topdir
+  if isDirectory then do
+    names <- getDirectoryContents topdir
+    let properNames = filter (`notElem` [".", ".."]) names
+    paths <- forM properNames $ \name -> do
+      let path = topdir </> name
+      isDirectory <- doesDirectoryExist path
+      if isDirectory
+        then getRecursiveContents path
+        else return [path]
+    return (concat paths)
+    else return []
