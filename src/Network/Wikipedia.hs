@@ -24,7 +24,7 @@ isArticleURL (URL (Absolute (Host (HTTP False) xs Nothing)) ph []) = (xs =~ ".*e
 isArticleURL _ = False
 
 articleURL2Title :: URL -> String
-articleURL2Title x | isArticleURL x = urlEncode $ tail $ dropWhile (/='/') (url_path x)
+articleURL2Title x | isArticleURL x = filter (/= '%') $ urlEncode $ tail $ dropWhile (/='/') (url_path x)
                    | otherwise      = ""
 
 getArticleLinks :: WikiArticle -> [URL]

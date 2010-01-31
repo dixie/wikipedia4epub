@@ -6,6 +6,7 @@ import System.Directory
 import Network.URL
 import Control.Monad (liftM)
 import Data.List (nub, foldl')
+import Data.Char (isLetter)
 import System.IO
 import Codec.EBook
 import qualified Data.ByteString.Lazy as B
@@ -65,8 +66,9 @@ wiki4e_createEpub bookName srcDir = do
 loadArticleFile :: FilePath -> FilePath -> IO BookItem
 loadArticleFile bookDir fname = do
    cs <- B.readFile fname
-   return (BookItem name bfile cs opsMediatype (Just (ChapterMetadata name))) 
+   return (BookItem aid bfile cs opsMediatype (Just (ChapterMetadata name))) 
    where
+      aid = filter isLetter name 
       bfile = bookDir </> name
       name = takeFileName $ normalise fname
 
