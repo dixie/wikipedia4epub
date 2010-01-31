@@ -1,5 +1,5 @@
 Name:            wikipedia4epub
-Version:         0.0.1
+Version:         0.0.2
 License:         BSD3
 License-File:    LICENSE
 Homepage:        http://rampa.sk/static/wikipedia4epub.html
@@ -44,6 +44,11 @@ Library
   Hs-Source-Dirs:  src
   Extensions:      CPP, PatternGuards
   Ghc-Options:      -Wall -fno-warn-orphans
+
+  Exposed-modules:
+        Wikipedia4epub.Commands
+        Network.Wikipedia
+        Web.Firefox
 
 Executable wiki4e-firefox-epub
   Hs-Source-Dirs:  src
