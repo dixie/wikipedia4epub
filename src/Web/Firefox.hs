@@ -5,12 +5,16 @@ import Database.HDBC.Sqlite3 (connectSqlite3, setBusyTimeout)
 import Network.URL (importURL, URL)
 import Data.List (isSuffixOf)
 import Control.Monad (forM)
-import Data.Maybe (catMaybes, mapMaybe)
-import System.Directory (doesDirectoryExist, getDirectoryContents, getHomeDirectory)
+import Data.Maybe (mapMaybe)
+import System.Directory (doesDirectoryExist, getDirectoryContents, getHomeDirectory, getTemporaryDirectory, copyFile, removeFile)
 import System.FilePath ((</>))
 
-firefoxDirs = [ ".mozilla", ".mozilla-firefox" ]
+firefoxDirs :: [String]
+firefoxDirs = [ ".mozilla", ".mozilla-firefox", ".firefox" ]
+
+placesFile :: String
 placesFile = "places.sqlite"
+
 timeoutFox = 5
 
 listPlacesFiles :: IO [FilePath]
@@ -29,22 +33,26 @@ listAllHistoryURLs = do
 listHistoryURLs :: FilePath -> IO [URL]
 listHistoryURLs name = do
    putStrLn $ "Going to connect on Firefox SQLite DB: " ++ name
-   conn <- connectSqlite3 name
+   tmpDir <- getTemporaryDirectory
+   let tmpName = tmpDir </> "wiki4e_places.sqlite"
+   copyFile name tmpName
+   conn <- connectSqlite3 tmpName
    setBusyTimeout conn (1000*timeoutFox)
    xs <- quickQuery' conn "select url from moz_places order by last_visit_date desc" []
    let ys = map (fromSql . head) xs :: [String]
+   removeFile tmpName
    return $ mapMaybe importURL ys
 
 getRecursiveContents :: FilePath -> IO [FilePath]
 getRecursiveContents topdir = do
-  isDirectory <- doesDirectoryExist topdir
-  if isDirectory then do
+  e <- doesDirectoryExist topdir
+  if e then do
     names <- getDirectoryContents topdir
     let properNames = filter (`notElem` [".", ".."]) names
     paths <- forM properNames $ \name -> do
       let path = topdir </> name
-      isDirectory <- doesDirectoryExist path
-      if isDirectory
+      e2 <- doesDirectoryExist path
+      if e2
         then getRecursiveContents path
         else return [path]
     return (concat paths)
