@@ -58,7 +58,7 @@ wiki4e_createEpub bookName srcDir = do
      items <- mapM (loadArticleFile "wiki") fileNames
      let bookFull = foldl' addItem2Book book items
      let epubFName = bookName++".epub"
-     outdata <- book2Str' bookFull
+     outdata <- book2Bin' bookFull
      B.writeFile epubFName  outdata
      putStrLn $ epubFName ++ " constructed."
 
