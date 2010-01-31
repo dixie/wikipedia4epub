@@ -16,6 +16,10 @@ Category:        Text
 Stability:       experimental
 Build-Type:      Simple
 Cabal-Version:   >= 1.6
+
+Source-Repository head
+  type:     darcs
+  location: http://patch-tag.com/r/dixiecko/wikipedia4epub
     
 Library
   Build-Depends:   ghc,
