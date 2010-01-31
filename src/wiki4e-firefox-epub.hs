@@ -24,7 +24,7 @@ firefox2epub bookName = do
   let tmpDirSanitize = tmpDir </> "wiki4e_sanitize"
   createDirectoryIfMissing True tmpDirFetch
   createDirectoryIfMissing True tmpDirSanitize
-  putStrLn $ "Fetching "++(show $ length xs)++" Articles..."
+  putStrLn $ "Fetching "++show (length xs)++" Articles..."
   wiki4e_fetchArticles tmpDirFetch xs
   putStrLn "Sanitize Articles..."
   wiki4e_sanitizeArticles tmpDirFetch tmpDirSanitize

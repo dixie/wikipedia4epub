@@ -14,7 +14,7 @@ import Text.Regex.Base
 import Network.HTTP
 import Text.HTML.TagSoup
 import Data.List (nub)
-import Data.Maybe (catMaybes, fromJust)
+import Data.Maybe (catMaybes, mapMaybe, fromJust)
 
 data WikiArticle = WikiArticleHTML { waTitle :: String, waContent :: String } 
                  | WikiArticleSRC  { waTitle :: String, waContent :: String } deriving (Show, Ord, Eq)
@@ -31,7 +31,7 @@ getArticleLinks :: WikiArticle -> [URL]
 getArticleLinks xs = let inTags = parseTags (waContent xs)
                          aTags = filter (isTagOpenName "a") inTags
                          hrefs = map (fromAttrib "href") aTags 
-                     in catMaybes $ map (importURL) $ nub $ filter (\x -> x =~ "^/wiki/[^:/]+$") hrefs
+                     in mapMaybe importURL $ nub $ filter (=~ "^/wiki/[^:/]+$") hrefs
                     
 -- http://en.wikipedia.org/w/index.php?title=Computer&printable=yes
 articleURL2PrintURL :: URL -> URL
@@ -48,7 +48,7 @@ sanitizeArticle xs = let inTags = parseTags (waContent xs)
                          outTags = processTags $ filterTags "img" $ filterTags "div" $ filterTags "link" $ filterTags "script" inTags
                      in WikiArticleHTML (waTitle xs) (renderTags outTags)
 
-processTags xs = map (removeEmptyAttr) xs
+processTags xs = map removeEmptyAttr xs
    where
      removeEmptyAttr t@(TagOpen s xs) | null s        = t
                                       | head s == '!' = t

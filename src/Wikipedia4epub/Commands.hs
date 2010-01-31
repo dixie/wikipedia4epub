@@ -14,11 +14,10 @@ wiki4e_fetchArticle :: FilePath -> URL -> IO ()
 wiki4e_fetchArticle oud x = do
   e <- doesFileExist filename
   if not e then do
-    putStrLn $ "Fetching : " ++ (exportURL x)
+    putStrLn $ "Fetching : " ++ exportURL x
     (WikiArticleHTML t c) <- fetchArticle x
-    withBinaryFile filename WriteMode (\h -> hPutStr h c)
-    else do
-       putStrLn $ "File already exists. Skipping download: " ++ filename
+    withBinaryFile filename WriteMode (flip hPutStr c)
+    else putStrLn $ "File already exists. Skipping download: " ++ filename
   where
     filename = oud </> title
     title    = articleURL2Title x
@@ -30,8 +29,7 @@ wiki4e_fetchArticleTree :: String -> Int -> IO ()
 wiki4e_fetchArticleTree xs l = undefined
 
 wiki4e_sanitizeArticle :: FilePath -> FilePath -> IO ()
-wiki4e_sanitizeArticle inf ouf = do
-     withFile inf ReadMode (\hi -> do
+wiki4e_sanitizeArticle inf ouf = withFile inf ReadMode (\hi -> do
           hSetEncoding hi utf8
           withFile ouf WriteMode (\ho -> do 
                   hSetEncoding ho utf8
@@ -42,12 +40,11 @@ wiki4e_sanitizeArticle inf ouf = do
          )
 
 wiki4e_sanitizeArticles :: FilePath -> FilePath -> IO ()
-wiki4e_sanitizeArticles ind oud = do
-     xs <- wiki4e_listFiles ind
-     mapM_ (\x -> wiki4e_sanitizeArticle (ind </> x) (oud </> x)) xs
+wiki4e_sanitizeArticles ind oud = wiki4e_listFiles ind >>= 
+     mapM_ (\x -> wiki4e_sanitizeArticle (ind </> x) (oud </> x))
 
 wiki4e_listFiles :: FilePath -> IO [FilePath]
-wiki4e_listFiles xs = liftM (filter (\(c:_) -> c /= '.')) $ getDirectoryContents xs
+wiki4e_listFiles = liftM (filter (\(c:_) -> c /= '.')) . getDirectoryContents
 
 wiki4e_createEpub :: String -> FilePath -> IO ()
 wiki4e_createEpub bookName srcDir = do
@@ -76,4 +73,4 @@ loadArticleFile bookDir fname = do
 wiki4e_listFirefoxURLs :: IO [URL]
 wiki4e_listFirefoxURLs = do
      xs <- listAllHistoryURLs
-     return $ nub $ filter (isArticleURL) xs
+     return $ nub $ filter isArticleURL xs
