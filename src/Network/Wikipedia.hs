@@ -43,9 +43,10 @@ articleURL2RawURL :: URL -> URL
 articleURL2RawURL xs | isArticleURL xs = URL (url_type xs) "w/index.php" [("title",articleURL2Title xs),("action","raw")]
                      | otherwise       = xs
 
+tags4Filter = ["img", "div", "link", "script", "sup" ]
 sanitizeArticle :: WikiArticle -> WikiArticle
 sanitizeArticle xs = let inTags = parseTags (waContent xs)
-                         outTags = processTags $ filterTags "img" $ filterTags "div" $ filterTags "link" $ filterTags "script" inTags
+                         outTags = processTags $ filterAllTags tags4Filter inTags
                      in WikiArticleHTML (waTitle xs) (renderTags outTags)
 
 processTags xs = map removeEmptyAttr xs
@@ -54,6 +55,8 @@ processTags xs = map removeEmptyAttr xs
                                       | head s == '!' = t
                                       | otherwise     = TagOpen s (filter (not . null . snd) xs) 
      removeEmptyAttr t = t
+
+filterAllTags tgs xs = foldr (filterTags) xs tgs 
 
 filterTags tn [] = []
 filterTags tn (x:xs) | isTagOpenName tn x  = filterTags tn $ dropWhile (not . isTagCloseName tn) xs
