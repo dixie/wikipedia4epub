@@ -49,14 +49,22 @@ sanitizeArticle xs = let inTags = parseTags (waContent xs)
                          outTags = processTags $ filterAllTags tags4Filter inTags
                      in WikiArticleHTML (waTitle xs) (renderTags outTags)
 
-processTags xs = map removeEmptyAttr xs
+processTags xs = map processAttrs xs
    where
-     removeEmptyAttr t@(TagOpen s xs) | null s        = t
-                                      | head s == '!' = t
-                                      | otherwise     = TagOpen s (filter (not . null . snd) xs) 
-     removeEmptyAttr t = t
+     processAttrs t@(TagOpen "a" _) = TagOpen "u" []
+     processAttrs t@(TagClose "a")  = TagClose "u" 
+     processAttrs t@(TagOpen s xs) | null s        = t
+                                   | head s == '!' = t
+                                   | otherwise     = TagOpen s (removeStyleAttr $ removeEmptyAttr xs)
+     processAttrs t = t
+     removeEmptyAttr xs = filter (not . null . snd) xs 
+     removeStyleAttr xs = filter (\x -> (fst x) `notElem` ["style", "id", "class"]) xs
 
-filterAllTags tgs xs = foldr (filterTags) xs tgs 
+
+filterAllTags tgs xs = filter (not . isTagComment) $  foldr (filterTags) xs tgs 
+
+isTagComment (TagComment _) = True
+isTagComment _              = False
 
 filterTags tn [] = []
 filterTags tn (x:xs) | isTagOpenName tn x  = filterTags tn $ dropWhile (not . isTagCloseName tn) xs
