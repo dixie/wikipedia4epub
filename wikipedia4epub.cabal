@@ -23,7 +23,7 @@ Source-Repository head
   location: http://patch-tag.com/r/dixiecko/wikipedia4epub
     
 Library
-  Build-Depends:   ghc,
+  Build-Depends:   ghc >= 6.12.1,
                    base < 5,
                    filepath,
                    bytestring,

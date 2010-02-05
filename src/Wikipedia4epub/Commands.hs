@@ -6,12 +6,10 @@ import System.Directory
 import Network.URL
 import Control.Monad (liftM, filterM)
 import Data.List (nub, foldl')
-import Data.Char (isLetter)
+import Data.Char (toLower)
 import System.IO
 import Network.HTTP
-import Data.Maybe
 import Codec.EBook
-import Debug.Trace
 import qualified Data.ByteString.Lazy as B
 
 wiki4e_fetchArticle :: FilePath -> URL -> IO ()
@@ -19,7 +17,7 @@ wiki4e_fetchArticle oud x = do
   e <- doesFileExist filename
   if not e then do
     putStrLn $ "Fetching : " ++ exportURL x
-    (WikiArticleHTML t c) <- fetchArticle x
+    (WikiArticleHTML _ c) <- fetchArticle x
     withBinaryFile filename WriteMode (flip hPutStr c)
     else putStrLn $ "File already exists. Skipping download: " ++ filename
   where
@@ -123,11 +121,12 @@ loadImgFile i bookDir fname = do
    cs <- B.readFile fname
    return (BookItem aid bfile cs mimeType Nothing) 
    where
-      mimeType | takeExtension name == ".png"  = "image/png"
-               | takeExtension name == ".jpeg" = "image/jpeg"
-               | takeExtension name == ".jpg"  = "image/jpeg"
-               | takeExtension name == ".gif"  = "image/gif"
+      mimeType | hasExt ".png"  name = "image/png"
+               | hasExt ".jpeg" name = "image/jpeg"
+               | hasExt ".jpg"  name = "image/jpeg"
+               | hasExt ".gif"  name = "image/gif"
                | otherwise = "image/png"
+      hasExt x f = (map toLower $ takeExtension f) == x
       aid = show i
       bfile = bookDir </> name
       name = takeFileName $ normalise fname
