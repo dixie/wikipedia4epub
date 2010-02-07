@@ -18,9 +18,13 @@ main = do
 
 usageHelp name = putStrLn $ "Usage: " ++ name ++ " [<Title Name of new e-book>]"
 
+getWiki4eDir = do
+  cs <- getHomeDirectory
+  return $ cs </> ".wiki4e"
+
 firefox2epub bookName = do
   xs <- wiki4e_listFirefoxURLs
-  tmpDir <- getTemporaryDirectory
+  tmpDir <- getWiki4eDir
   let tmpDirFetch    = tmpDir </> "wiki4e_fetch"     
   let tmpDirSanitize = tmpDir </> "wiki4e_sanitize"
   let tmpDirImgs     = tmpDir </> "wiki4e_images"
