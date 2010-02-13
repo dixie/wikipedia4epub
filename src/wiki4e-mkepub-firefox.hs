@@ -18,9 +18,7 @@ main = do
 
 usageHelp name = putStrLn $ "Usage: " ++ name ++ " [<Title Name of new e-book>]"
 
-getWiki4eDir = do
-  cs <- getHomeDirectory
-  return $ cs </> ".wiki4e"
+getWiki4eDir = getAppUserDataDirectory "wiki4e"
 
 firefox2epub bookName = do
   xs <- wiki4e_listFirefoxURLs
