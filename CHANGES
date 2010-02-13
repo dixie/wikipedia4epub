@@ -1,0 +1,3 @@
+* 0.0.4 <2010-02-13 Sat>
+  - create temporary files at getAppUserDataDirectory()
+  - display progress of the download
