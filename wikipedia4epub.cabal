@@ -50,6 +50,6 @@ Library
         Network.Wikipedia
         Web.Firefox
 
-Executable wiki4e-firefox-epub
+Executable wiki4e-mkepub-firefox
   Hs-Source-Dirs:  src
-  Main-Is:         wiki4e-firefox-epub.hs
+  Main-Is:         wiki4e-mkepub-firefox.hs
