@@ -12,20 +12,42 @@ import Network.HTTP
 import Codec.EBook
 import qualified Data.ByteString.Lazy as B
 
-wiki4e_fetchArticle :: FilePath -> URL -> IO ()
-wiki4e_fetchArticle oud x = do
-  e <- doesFileExist filename
+-- Fetching state where first number is total and second is current item.
+type FetchingState = (Int,Int)
+type FetchingMethod = (URL -> IO String)
+
+fs2str :: FetchingState -> String
+fs2str (total,current) = "["++(show current)++"/"++(show total)++"] " 
+
+wiki4e_fetch :: FilePath -> FetchingMethod -> FetchingState -> URL -> IO ()
+wiki4e_fetch outf fm fs x = do
+  e <- doesFileExist outf
   if not e then do
-    putStrLn $ "Fetching : " ++ exportURL x
-    (WikiArticleHTML _ c) <- fetchArticle x
-    withBinaryFile filename WriteMode (flip hPutStr c)
-    else putStrLn $ "File already exists. Skipping download: " ++ filename
-  where
-    filename = oud </> title
-    title    = articleURL2Title x
+    putStrLn $ (fs2str fs) ++ "Fetching : " ++ exportURL x
+    c <- fm x
+    withBinaryFile outf WriteMode (flip hPutStr c)
+    else putStrLn $ (fs2str fs) ++ "Already cached. Skipping download. " ++ outf
 
 wiki4e_fetchArticles :: FilePath -> [URL] -> IO ()
-wiki4e_fetchArticles oud xs = mapM_ (wiki4e_fetchArticle oud) xs
+wiki4e_fetchArticles oud xs = mapM_ (\(st,x) -> wiki4e_fetch (nm x) fm st x) $ zip fsls xs
+    where
+      fsls = [ (total,i) | i <- [1..total] ]
+      total = length xs
+      nm x = oud </> (articleURL2Title x)
+      fm x = do
+        (WikiArticleHTML _ c) <- fetchArticle x
+        return c
+
+wiki4e_fetchImages :: FilePath -> [URL] -> IO ()
+wiki4e_fetchImages oud xs = mapM_ (\(st,x) -> wiki4e_fetch (nm x) fm st x) $ zip fsls xs
+    where
+      fsls = [ (total,i) | i <- [1..total] ]
+      total = length xs
+      nm x = oud </> (sanitizeFileName $ takeFileName (url_path x))
+      fm x = do
+        rsp <- Network.HTTP.simpleHTTP (getRequest (exportURL x))
+        c <- (getResponseBody rsp)
+        return c
 
 wiki4e_fetchArticleTree :: String -> Int -> IO ()
 wiki4e_fetchArticleTree xs l = undefined
@@ -53,23 +75,6 @@ wiki4e_listArticlesImages ind = do
      xs <- wiki4e_listFiles ind
      ys <- mapM (wiki4e_listArticleImages) xs
      return $ nub $ concat ys
-
-wiki4e_fetchImage :: FilePath -> URL -> IO ()
-wiki4e_fetchImage oud x = do
-  e <- doesFileExist filename
-  if not e then do
-    createDirectoryIfMissing True (takeDirectory filename)
-    putStrLn $ "Fetching : " ++ exportURL x
-    rsp <- Network.HTTP.simpleHTTP (getRequest (exportURL x))
-    c <- (getResponseBody rsp)
-    withBinaryFile filename WriteMode (flip hPutStr c)
-    else putStrLn $ "File already exists. Skipping download: " ++ filename
-  where
-    filename = oud </> name
-    name     = sanitizeFileName $ takeFileName (url_path x)
-
-wiki4e_fetchImages :: FilePath -> [URL] -> IO ()
-wiki4e_fetchImages oud xs = mapM_ (wiki4e_fetchImage oud) xs
 
 wiki4e_sanitizeArticles :: FilePath -> FilePath -> IO ()
 wiki4e_sanitizeArticles ind oud = wiki4e_listFiles ind >>= 
