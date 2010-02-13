@@ -6,11 +6,13 @@ import Wiki4e.Commands
 import System.IO 
 import Network.URL
 
+defaultEbookName = "Wikipedia_Articles_From_Firefox"
+
 main = do
   name <- getProgName
   args <- getArgs
   case args of 
-      []      -> firefox2epub "Wikipedia_Articles_From_Firefox"
+      []      -> firefox2epub defaultEbookName
       ['-':_] -> usageHelp name
       ['/':_] -> usageHelp name
       [xs]    -> firefox2epub xs
@@ -29,13 +31,13 @@ firefox2epub bookName = do
   createDirectoryIfMissing True tmpDirFetch
   createDirectoryIfMissing True tmpDirSanitize
   createDirectoryIfMissing True tmpDirImgs
-  putStrLn $ "Fetching "++show (length xs)++" Articles..."
+  putStrLn "# STAGE 1/4 - Download Articles..."
   wiki4e_fetchArticles tmpDirFetch xs
-  putStrLn "Sanitize Articles..."
+  putStrLn "# STAGE 2/4 - Sanitize Articles..."
   wiki4e_sanitizeArticles tmpDirFetch tmpDirSanitize
-  putStrLn "Download Images..."
+  putStrLn "# STAGE 3/4 - Download Images..."
   imgs <- wiki4e_listArticlesImages tmpDirFetch
   wiki4e_fetchImages tmpDirImgs imgs
-  putStrLn "Constructing EPUB..."
+  putStrLn "# STAGE 4/4 - Constructing EPUB..."
   wiki4e_createEpub bookName tmpDirSanitize tmpDirImgs
   putStrLn "Done."
