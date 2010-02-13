@@ -46,7 +46,7 @@ Library
   Ghc-Options:      -Wall -fno-warn-orphans
 
   Exposed-modules:
-        Wikipedia4epub.Commands
+        Wiki4e.Commands
         Network.Wikipedia
         Web.Firefox
 

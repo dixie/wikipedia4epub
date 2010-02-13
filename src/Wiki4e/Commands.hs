@@ -1,4 +1,4 @@
-module Wikipedia4epub.Commands where
+module Wiki4e.Commands where
 import Network.Wikipedia
 import Web.Firefox
 import System.FilePath

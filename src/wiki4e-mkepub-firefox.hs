@@ -2,7 +2,7 @@ import Text.HTML.TagSoup
 import System.Environment
 import System.Directory
 import System.FilePath
-import Wikipedia4epub.Commands
+import Wiki4e.Commands
 import System.IO 
 import Network.URL
 
