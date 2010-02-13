@@ -135,3 +135,15 @@ loadImgFile i bookDir fname = do
       aid = show i
       bfile = bookDir </> name
       name = takeFileName $ normalise fname
+
+getWiki4eDir = getAppUserDataDirectory "wiki4e"
+
+wiki4e_initConfig = do
+  tmpDir <- getWiki4eDir
+  let tmpDirFetch    = tmpDir </> "wiki4e_fetch"     
+  let tmpDirSanitize = tmpDir </> "wiki4e_sanitize"
+  let tmpDirImgs     = tmpDir </> "wiki4e_images"
+  createDirectoryIfMissing True tmpDirFetch
+  createDirectoryIfMissing True tmpDirSanitize
+  createDirectoryIfMissing True tmpDirImgs
+  return (tmpDirFetch,tmpDirSanitize,tmpDirImgs)

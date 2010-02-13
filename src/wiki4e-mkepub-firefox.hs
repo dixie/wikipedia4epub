@@ -20,17 +20,9 @@ main = do
 
 usageHelp name = putStrLn $ "Usage: " ++ name ++ " [<Title Name of new e-book>]"
 
-getWiki4eDir = getAppUserDataDirectory "wiki4e"
-
 firefox2epub bookName = do
   xs <- wiki4e_listFirefoxURLs
-  tmpDir <- getWiki4eDir
-  let tmpDirFetch    = tmpDir </> "wiki4e_fetch"     
-  let tmpDirSanitize = tmpDir </> "wiki4e_sanitize"
-  let tmpDirImgs     = tmpDir </> "wiki4e_images"
-  createDirectoryIfMissing True tmpDirFetch
-  createDirectoryIfMissing True tmpDirSanitize
-  createDirectoryIfMissing True tmpDirImgs
+  (tmpDirFetch,tmpDirSanitize,tmpDirImgs) <- wiki4e_initConfig
   putStrLn "# STAGE 1/4 - Download Articles..."
   wiki4e_fetchArticles tmpDirFetch xs
   putStrLn "# STAGE 2/4 - Sanitize Articles..."
