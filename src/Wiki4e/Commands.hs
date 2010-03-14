@@ -17,6 +17,11 @@ import qualified Data.ByteString as STR
 type FetchingState = (Int,Int)
 type FetchingMethod = (URL -> IO String)
 
+-- | Basic configuration of the commands
+data Wiki4eConfig = Wiki4eConfig { w4confDirFetch      :: FilePath,
+                                   w4confDirImg        :: FilePath,
+                                   w4confDirSanitized  :: FilePath }
+
 fs2str :: FetchingState -> String
 fs2str (total,current) = "["++(show current)++"/"++(show total)++"] " 
 
@@ -29,22 +34,22 @@ wiki4e_fetch outf fm fs x = do
     withBinaryFile outf WriteMode (flip hPutStr c)
     else putStrLn $ (fs2str fs) ++ "Already cached. Skipping download. " ++ outf
 
-wiki4e_fetchArticles :: FilePath -> [URL] -> IO ()
-wiki4e_fetchArticles oud xs = mapM_ (\(st,x) -> wiki4e_fetch (nm x) fm st x) $ zip fsls xs
+wiki4e_fetchArticles :: Wiki4eConfig -> [URL] -> IO ()
+wiki4e_fetchArticles config xs = mapM_ (\(st,x) -> wiki4e_fetch (nm x) fm st x) $ zip fsls xs
     where
       fsls = [ (total,i) | i <- [1..total] ]
       total = length xs
-      nm x = oud </> (articleURL2Title x)
+      nm x = articleURL2File config x
       fm x = do
         (WikiArticleHTML _ c) <- fetchArticle x
         return c
 
-wiki4e_fetchImages :: FilePath -> [URL] -> IO ()
-wiki4e_fetchImages oud xs = mapM_ (\(st,x) -> wiki4e_fetch (nm x) fm st x) $ zip fsls xs
+wiki4e_fetchImages :: Wiki4eConfig -> [URL] -> IO ()
+wiki4e_fetchImages config xs = mapM_ (\(st,x) -> wiki4e_fetch (nm x) fm st x) $ zip fsls xs
     where
       fsls = [ (total,i) | i <- [1..total] ]
       total = length xs
-      nm x = oud </> (sanitizeFileName $ takeFileName (url_path x))
+      nm x = imgURL2File config x
       fm x = do
         rsp <- Network.HTTP.simpleHTTP (getRequest (exportURL x))
         c <- (getResponseBody rsp)
@@ -70,50 +75,48 @@ wiki4e_listArticleImages x = do
           forceList c `seq` hClose h
           return $ getArticleImages (WikiArticleHTML "" c)
 
-wiki4e_listArticlesImages :: FilePath -> IO [URL]
-wiki4e_listArticlesImages ind = do 
-     xs <- wiki4e_listFiles ind
+wiki4e_listArticlesImages :: Wiki4eConfig -> [URL] -> IO [URL]
+wiki4e_listArticlesImages config urls = do 
+     let xs = wiki4e_getImgFiles config urls
      ys <- mapM (wiki4e_listArticleImages) xs
      return $ nub $ concat ys
 
-wiki4e_sanitizeArticles :: FilePath -> FilePath -> IO ()
-wiki4e_sanitizeArticles ind oud = wiki4e_listFiles ind >>= 
-     mapM_ (\x -> wiki4e_sanitizeArticle x (oud </> (takeFileName x)))
-
-wiki4e_listFiles :: FilePath -> IO [FilePath]
-wiki4e_listFiles xs = do
-  nonDot <- liftM (filter (\(c:_) -> c /= '.')) $ getDirectoryContents xs
-  dirs <- filterM (doesDirectoryExist) (map (xs </>) nonDot)
-  fils <- filterM (\e -> liftM (not) $ doesDirectoryExist e ) (map (xs </>) nonDot)
-  ys <- mapM (wiki4e_listFiles) dirs
-  return $ (concat ys) ++ fils
+wiki4e_sanitizeArticles :: Wiki4eConfig -> [URL] -> IO ()
+wiki4e_sanitizeArticles config arts = do
+  let xs = wiki4e_getArticleFiles config arts
+  mapM_ (\x -> wiki4e_sanitizeArticle x ((w4confDirSanitized config) </> (takeFileName x))) xs
 
 wiki4e_listFirefoxURLs :: IO [URL]
 wiki4e_listFirefoxURLs = do
      xs <- listAllHistoryURLs
      return $ nub $ filter isArticleURL xs
 
-wiki4e_crawlArticlesLinks :: FilePath -> [URL] -> Int -> IO [URL]
+wiki4e_crawlArticlesLinks :: Wiki4eConfig -> [URL] -> Int -> IO [URL]
 wiki4e_crawlArticlesLinks _ _  0 = return []
 wiki4e_crawlArticlesLinks _ [] _ = return []
-wiki4e_crawlArticlesLinks outd us (l + 1) = do
-  wiki4e_fetchArticles outd us
+wiki4e_crawlArticlesLinks config us (l + 1) = do
+  wiki4e_fetchArticles config us
   let fs = map (outd </>) $ map (articleURL2Title) us
   as <- mapM (wiki4e_readArticle) fs
   let xs = nub $ concat $ map getArticleLinksAbs as
-  ys <- wiki4e_crawlArticlesLinks outd xs l
+  ys <- wiki4e_crawlArticlesLinks config xs l
   return (nub $ us++xs++ys)
+    where
+      outd = w4confDirFetch config
 
-wiki4e_createEpub :: String -> FilePath -> FilePath -> IO ()
-wiki4e_createEpub bookName srcDir imgDir = do
+-- | Create epub in current directory with bookName 
+-- | With all articles in directory srcDir and images at
+-- | imgDir
+wiki4e_createEpub :: Wiki4eConfig -> String -> [URL] -> [URL] -> IO ()
+wiki4e_createEpub config bookName artURLs imgURLs = do
      let book = emptyBook { 
                   bookID = "http://localhost/"++bookName,
                   bookAuthor = "wiki4e-firefox-epub",
                   bookTitle = bookName
                 }
-     xs <- wiki4e_listFiles srcDir
+     let xs = wiki4e_getArticleFiles config artURLs
+     let ys = wiki4e_getImgFiles config imgURLs
      itemsA <- mapM (\(i,x) -> loadArticleFile i "wiki" x) $ zip [1..] xs
-     ys <- wiki4e_listFiles imgDir
      itemsI <- mapM (\(i,x) -> loadImgFile i "wiki/img" x) $ zip [(length xs + 1)..] ys
      let bookFull = foldl' addItem2Book book (itemsA ++ itemsI)
      let epubFName = bookName++".epub"
@@ -122,7 +125,10 @@ wiki4e_createEpub bookName srcDir imgDir = do
      putStrLn $ epubFName ++ " constructed."
 
 -- Support Functions
-wiki4e_initConfig :: IO (String,String,String)
+getWiki4eDir :: IO FilePath
+getWiki4eDir = getAppUserDataDirectory "wiki4e"
+
+wiki4e_initConfig :: IO Wiki4eConfig
 wiki4e_initConfig = do
   tmpDir <- getWiki4eDir
   let tmpDirFetch    = tmpDir </> "wiki4e_fetch"     
@@ -131,7 +137,7 @@ wiki4e_initConfig = do
   createDirectoryIfMissing True tmpDirFetch
   createDirectoryIfMissing True tmpDirSanitize
   createDirectoryIfMissing True tmpDirImgs
-  return (tmpDirFetch,tmpDirSanitize,tmpDirImgs)
+  return (Wiki4eConfig tmpDirFetch tmpDirImgs tmpDirSanitize)
 
 wiki4e_readArticle :: FilePath -> IO WikiArticle
 wiki4e_readArticle inf = do
@@ -140,7 +146,6 @@ wiki4e_readArticle inf = do
   c <- hGetContents hi
   forceList c `seq` hClose hi
   return $ WikiArticleHTML "" c
-
 
 loadArticleFile :: Int -> FilePath -> FilePath -> IO BookItem
 loadArticleFile i bookDir fname = do
@@ -166,7 +171,6 @@ loadImgFile i bookDir fname = do
       bfile = bookDir </> name
       name = takeFileName $ normalise fname
  
-getWiki4eDir = getAppUserDataDirectory "wiki4e"
 
 toLazy :: STR.ByteString -> STRL.ByteString
 toLazy xs = STRL.pack $ STR.unpack xs 
@@ -174,3 +178,21 @@ toLazy xs = STRL.pack $ STR.unpack xs
 forceList :: String -> String
 forceList [] = []
 forceList (x:xs) = forceList xs `seq` (x:xs)
+
+imgURL2File :: Wiki4eConfig -> URL -> FilePath
+imgURL2File config x = (w4confDirImg config) </> (sanitizeFileName $ takeFileName (url_path x))
+
+articleURL2File :: Wiki4eConfig -> URL -> FilePath
+articleURL2File config x = (w4confDirFetch config) </> (articleURL2Title x)
+
+articleURL2SanFile :: Wiki4eConfig -> URL -> FilePath
+articleURL2SanFile config x = (w4confDirSanitized config) </> (articleURL2Title x)
+
+wiki4e_getImgFiles :: Wiki4eConfig -> [URL] -> [FilePath]
+wiki4e_getImgFiles config xs = map (imgURL2File config) xs
+
+wiki4e_getArticleFiles :: Wiki4eConfig -> [URL] -> [FilePath]
+wiki4e_getArticleFiles config xs = map (articleURL2File config) xs
+
+wiki4e_getArticleSanFiles :: Wiki4eConfig -> [URL] -> [FilePath]
+wiki4e_getArticleSanFiles config xs = map (articleURL2SanFile config) xs

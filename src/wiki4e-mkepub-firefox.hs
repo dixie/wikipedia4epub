@@ -21,15 +21,15 @@ main = do
 usageHelp name = putStrLn $ "Usage: " ++ name ++ " [<Title Name of new e-book>]"
 
 firefox2epub bookName = do
-  xs <- wiki4e_listFirefoxURLs
-  (tmpDirFetch,tmpDirSanitize,tmpDirImgs) <- wiki4e_initConfig
+  arts <- wiki4e_listFirefoxURLs
+  config <- wiki4e_initConfig
   putStrLn "# STAGE 1/4 - Download Articles..."
-  wiki4e_fetchArticles tmpDirFetch xs
+  wiki4e_fetchArticles config arts
   putStrLn "# STAGE 2/4 - Sanitize Articles..."
-  wiki4e_sanitizeArticles tmpDirFetch tmpDirSanitize
+  wiki4e_sanitizeArticles config arts
   putStrLn "# STAGE 3/4 - Download Images..."
-  imgs <- wiki4e_listArticlesImages tmpDirFetch
-  wiki4e_fetchImages tmpDirImgs imgs
+  imgs <- wiki4e_listArticlesImages config arts
+  wiki4e_fetchImages config imgs
   putStrLn "# STAGE 4/4 - Constructing EPUB..."
-  wiki4e_createEpub bookName tmpDirSanitize tmpDirImgs
+  wiki4e_createEpub config bookName arts imgs
   putStrLn "Done."
