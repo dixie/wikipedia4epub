@@ -1,6 +1,6 @@
 module Web.Firefox (listPlacesFiles, listHistoryURLs, listAllHistoryURLs) 
 where
-import Database.HDBC (disconnect, fromSql, quickQuery')
+import Database.HDBC (fromSql, quickQuery')
 import Database.HDBC.Sqlite3 (connectSqlite3, setBusyTimeout)
 import Network.URL (importURL, URL)
 import Data.List (isSuffixOf)

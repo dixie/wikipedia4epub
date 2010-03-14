@@ -11,14 +11,12 @@ module Network.Wikipedia ( isArticleURL
                          , fetchArticle)
 where
 import Network.URL
-import Network.URI
 import Text.Regex.Posix
-import Text.Regex.Base
 import Network.HTTP
 import Text.HTML.TagSoup
 import System.FilePath
 import Data.List (nub)
-import Data.Maybe (catMaybes, mapMaybe, fromJust)
+import Data.Maybe (mapMaybe, fromJust)
 
 data WikiArticle = WikiArticleHTML { waTitle :: String, waContent :: String } 
                  | WikiArticleSRC  { waTitle :: String, waContent :: String } deriving (Show, Ord, Eq)
@@ -31,9 +29,6 @@ sanitizeFileName cs = map (unPercent) $ urlEncode cs
 isArticleURL :: URL -> Bool
 isArticleURL (URL (Absolute (Host (HTTP False) xs Nothing)) ph []) = (xs =~ ".*en[.]wikipedia.org$") && (ph =~ "wiki/[^:/]+$" )
 isArticleURL _ = False
-
-isArticleRelURL :: String -> Bool
-isArticleRelURL x = (x =~ "/wiki/[^:/]+$" )
 
 articleURL2Title :: URL -> String
 articleURL2Title x | isArticleURL x = sanitizeFileName (takeFileName (url_path x))
@@ -65,6 +60,7 @@ getArticleLinksAbs xs = let ys = getArticleLinks xs
                         in map toAbsURL ys
                     
 -- http://en.wikipedia.org/w/index.php?title=Computer&printable=yes
+{-
 articleURL2PrintURL :: URL -> URL
 articleURL2PrintURL xs | isArticleURL xs = URL (url_type xs) "w/index.php" [("title",articleURL2Title xs),("printable","yes")]
                        | otherwise       = xs
@@ -73,6 +69,7 @@ articleURL2PrintURL xs | isArticleURL xs = URL (url_type xs) "w/index.php" [("ti
 articleURL2RawURL :: URL -> URL
 articleURL2RawURL xs | isArticleURL xs = URL (url_type xs) "w/index.php" [("title",articleURL2Title xs),("action","raw")]
                      | otherwise       = xs
+-}
 
 sanitizeArticle :: [String] -> WikiArticle -> WikiArticle
 sanitizeArticle alnk xs = let inTags = parseTags (waContent xs)
@@ -84,9 +81,9 @@ processTags alnk xs = procHrefTags alnk $ procImgTags $ map processAttrs xs
    where
      processAttrs t@(TagOpen  "div" _) = TagText ""
      processAttrs t@(TagClose "div") = TagText ""
-     processAttrs t@(TagOpen s xs) | null s        = t
+     processAttrs t@(TagOpen s ys) | null s        = t
                                    | head s == '!' = t
-                                   | otherwise     = TagOpen s (removeStyleAttr $ removeEmptyAttr xs)
+                                   | otherwise     = TagOpen s (removeStyleAttr $ removeEmptyAttr ys)
      processAttrs t = t
      removeEmptyAttr xs = filter (not . null . snd) xs 
      removeStyleAttr xs = filter (\x -> (fst x) `notElem` ["style", "id", "class"]) xs

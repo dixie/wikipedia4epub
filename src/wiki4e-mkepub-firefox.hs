@@ -2,9 +2,12 @@ import Text.HTML.TagSoup
 import System.Environment
 import System.Directory
 import System.FilePath
-import Wiki4e.Commands
+import Data.List (nub)
 import System.IO 
 import Network.URL
+import Wiki4e.Commands
+import Network.Wikipedia (isArticleURL)
+import Web.Firefox
 
 defaultEbookName = "Wikipedia_Articles_From_Firefox"
 
@@ -33,3 +36,8 @@ firefox2epub bookName = do
   putStrLn "# STAGE 4/4 - Constructing EPUB..."
   wiki4e_createEpub config bookName arts imgs
   putStrLn "Done."
+
+wiki4e_listFirefoxURLs :: IO [URL]
+wiki4e_listFirefoxURLs = do
+     xs <- listAllHistoryURLs
+     return $ nub $ filter isArticleURL xs
