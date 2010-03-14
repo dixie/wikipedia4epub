@@ -55,14 +55,14 @@ wiki4e_fetchImages config xs = mapM_ (\(st,x) -> wiki4e_fetch (nm x) fm st x) $ 
         c <- (getResponseBody rsp)
         return c
 
-wiki4e_sanitizeArticle :: FilePath -> FilePath -> IO ()
-wiki4e_sanitizeArticle inf ouf = withFile inf ReadMode (\hi -> do
+wiki4e_sanitizeArticle :: [String] -> FilePath -> FilePath -> IO ()
+wiki4e_sanitizeArticle alnk inf ouf = withFile inf ReadMode (\hi -> do
           hSetEncoding hi utf8
           withFile ouf WriteMode (\ho -> do 
                   hSetEncoding ho utf8
                   c <- hGetContents hi
                   forceList c `seq` hClose hi
-                  let a = sanitizeArticle $ WikiArticleHTML "" c
+                  let a = sanitizeArticle alnk $ WikiArticleHTML "" c
                   hPutStr ho $ waContent a
                )
          )
@@ -77,14 +77,17 @@ wiki4e_listArticleImages x = do
 
 wiki4e_listArticlesImages :: Wiki4eConfig -> [URL] -> IO [URL]
 wiki4e_listArticlesImages config urls = do 
-     let xs = wiki4e_getImgFiles config urls
+     let xs = wiki4e_getArticleFiles config urls
      ys <- mapM (wiki4e_listArticleImages) xs
      return $ nub $ concat ys
 
 wiki4e_sanitizeArticles :: Wiki4eConfig -> [URL] -> IO ()
 wiki4e_sanitizeArticles config arts = do
-  let xs = wiki4e_getArticleFiles config arts
-  mapM_ (\x -> wiki4e_sanitizeArticle x ((w4confDirSanitized config) </> (takeFileName x))) xs
+  mapM_ (\x -> wiki4e_sanitizeArticle alnk x (outf x)) xs
+    where
+      xs = wiki4e_getArticleFiles config arts
+      alnk = map (articleURL2Title) arts
+      outf x = (w4confDirSanitized config) </> (takeFileName x)
 
 wiki4e_listFirefoxURLs :: IO [URL]
 wiki4e_listFirefoxURLs = do
@@ -114,7 +117,7 @@ wiki4e_createEpub config bookName artURLs imgURLs = do
                   bookAuthor = "wiki4e-firefox-epub",
                   bookTitle = bookName
                 }
-     let xs = wiki4e_getArticleFiles config artURLs
+     let xs = wiki4e_getArticleSanFiles config artURLs
      let ys = wiki4e_getImgFiles config imgURLs
      itemsA <- mapM (\(i,x) -> loadArticleFile i "wiki" x) $ zip [1..] xs
      itemsI <- mapM (\(i,x) -> loadImgFile i "wiki/img" x) $ zip [(length xs + 1)..] ys

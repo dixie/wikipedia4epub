@@ -32,9 +32,17 @@ isArticleURL :: URL -> Bool
 isArticleURL (URL (Absolute (Host (HTTP False) xs Nothing)) ph []) = (xs =~ ".*en[.]wikipedia.org$") && (ph =~ "wiki/[^:/]+$" )
 isArticleURL _ = False
 
+isArticleRelURL :: String -> Bool
+isArticleRelURL x = (x =~ "/wiki/[^:/]+$" )
+
 articleURL2Title :: URL -> String
 articleURL2Title x | isArticleURL x = sanitizeFileName (takeFileName (url_path x))
                    | otherwise      = ""
+
+articleRelURL2Title :: String -> String 
+articleRelURL2Title x = case importURL ("http://en.wikipedia.org"++x) of 
+                          Nothing -> ""
+                          Just  u -> articleURL2Title u
 
 isArticleImgURL :: String -> Bool
 isArticleImgURL cs = cs =~ "^http://upload.wikimedia.org/.*"
@@ -66,17 +74,14 @@ articleURL2RawURL :: URL -> URL
 articleURL2RawURL xs | isArticleURL xs = URL (url_type xs) "w/index.php" [("title",articleURL2Title xs),("action","raw")]
                      | otherwise       = xs
 
+sanitizeArticle :: [String] -> WikiArticle -> WikiArticle
+sanitizeArticle alnk xs = let inTags = parseTags (waContent xs)
+                              outTags = processTags alnk $ filterAllTags tags4Filter inTags
+                              tags4Filter = ["link", "script", "sup" ]
+                          in WikiArticleHTML (waTitle xs) (renderTags outTags)
 
-sanitizeArticle :: WikiArticle -> WikiArticle
-sanitizeArticle xs = let inTags = parseTags (waContent xs)
-                         outTags = procImgTags $ processTags $ filterAllTags tags4Filter inTags
-                         tags4Filter = ["link", "script", "sup" ]
-                     in WikiArticleHTML (waTitle xs) (renderTags outTags)
-
-processTags xs = map processAttrs xs
+processTags alnk xs = procHrefTags alnk $ procImgTags $ map processAttrs xs
    where
-     processAttrs t@(TagOpen "a" _)  = TagText ""
-     processAttrs t@(TagClose "a")   = TagText ""
      processAttrs t@(TagOpen  "div" _) = TagText ""
      processAttrs t@(TagClose "div") = TagText ""
      processAttrs t@(TagOpen s xs) | null s        = t
@@ -96,6 +101,18 @@ filterTags tn [] = []
 filterTags tn (x:xs) | isTagOpenName tn x  = filterTags tn $ dropWhile (not . isTagCloseName tn) xs
                      | isTagCloseName tn x = filterTags tn xs
                      | otherwise           = x:filterTags tn xs
+
+
+procHrefTags _ [] = []
+procHrefTags alnk (x:xs) | isTagOpenName "a" x = let relP   = fromAttrib "href" x
+                                                     title   = articleRelURL2Title relP
+                                                     imgOk  = (TagOpen "a" [("href",title)]):(procHrefTags alnk xs)
+                                                     isInBook = elem (title) alnk 
+                                                     imgNok = let pre  = takeWhile (not . isTagCloseName "a") xs
+                                                                  post = tail $ dropWhile (not . isTagCloseName "a") xs
+                                                              in pre ++ (procHrefTags alnk post)
+                                                 in if isInBook then imgOk else imgNok
+                         | otherwise           = x:(procHrefTags alnk xs)
 
 procImgTags [] = []
 procImgTags (x:xs) | isTagOpenName "img" x = let absP   = fromAttrib "src" x
