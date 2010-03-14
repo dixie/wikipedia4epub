@@ -27,7 +27,6 @@ wiki4e_sanitizeArticle alnk inf ouf = withFile inf ReadMode (\hi -> do
           withFile ouf WriteMode (\ho -> do 
                   hSetEncoding ho utf8
                   c <- hGetContents hi
-                  forceList c `seq` hClose hi
                   let a = sanitizeArticle alnk $ WikiArticleHTML "" c
                   hPutStr ho $ waContent a
                )
@@ -53,17 +52,15 @@ wiki4e_sanitizeArticles config arts = do
 
 wiki4e_listArticleImages :: FilePath -> IO [URL]
 wiki4e_listArticleImages x = do
-          h <- openFile x ReadMode
-          hSetEncoding h utf8
-          c <- hGetContents h
-          forceList c `seq` hClose h
-          return $ getArticleImages (WikiArticleHTML "" c)
+          c <- readFileUTF8 x
+          return $ nub $ getArticleImages (WikiArticleHTML "" c)
 
+-- | Method expects already sanitized articles
 wiki4e_listArticlesImages :: Wiki4eConfig -> [URL] -> IO [URL]
 wiki4e_listArticlesImages config urls = do 
-     let xs = wiki4e_getArticleFiles config urls
-     ys <- mapM (wiki4e_listArticleImages) xs
-     return $ nub $ concat ys
+     let files = wiki4e_getArticleFiles config urls
+     images <- mapM (wiki4e_listArticleImages) files
+     return $ nub $ concat images
 
 wiki4e_crawlArticlesLinks :: Wiki4eConfig -> [URL] -> Int -> IO [URL]
 wiki4e_crawlArticlesLinks _ _  0 = return []
@@ -101,8 +98,5 @@ loadArticleFile i bookDir fname = do
 
 wiki4e_readArticle :: FilePath -> IO WikiArticle
 wiki4e_readArticle inf = do
-  hi <- openBinaryFile inf ReadMode
-  hSetEncoding hi utf8
-  c <- hGetContents hi
-  forceList c `seq` hClose hi
-  return $ WikiArticleHTML "" c
+  c <- readFileUTF8 inf
+  return (WikiArticleHTML "" c)

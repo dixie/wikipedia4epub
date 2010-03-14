@@ -1,9 +1,11 @@
 module Wiki4e.Commands.Common ( Wiki4eConfig(..)
                               , wiki4e_initConfig
+                              , readFileUTF8
                               , toLazy
                               , forceList ) 
 where
 import System.FilePath
+import System.IO
 import System.Directory
 import qualified Data.ByteString.Lazy as STRL
 import qualified Data.ByteString as STR
@@ -27,6 +29,14 @@ wiki4e_initConfig = do
   createDirectoryIfMissing True tmpDirSanitize
   createDirectoryIfMissing True tmpDirImgs
   return (Wiki4eConfig tmpDirFetch tmpDirImgs tmpDirSanitize)
+
+readFileUTF8 :: FilePath -> IO String
+readFileUTF8 x = do
+          h <- openBinaryFile x ReadMode
+          hSetEncoding h utf8
+          c <- hGetContents h
+          forceList c `seq` hClose h
+          return c
 
 toLazy :: STR.ByteString -> STRL.ByteString
 toLazy xs = STRL.pack $ STR.unpack xs 

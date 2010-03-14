@@ -1,5 +1,5 @@
 Name:            wikipedia4epub
-Version:         0.0.4
+Version:         0.0.5
 License:         BSD3
 License-File:    LICENSE
 Homepage:        http://rampa.sk/static/wikipedia4epub.html
@@ -57,3 +57,7 @@ Executable wiki4e-mkepub-firefox
 Executable wiki4e-mkepub-subtree
   Hs-Source-Dirs:  src
   Main-Is:         wiki4e-mkepub-subtree.hs
+
+Executable wiki4e-mkepub-cache
+  Hs-Source-Dirs:  src
+  Main-Is:         wiki4e-mkepub-cache.hs
