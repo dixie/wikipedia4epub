@@ -2,6 +2,7 @@ module Network.Wikipedia ( isArticleURL
                          , WikiArticle(..)
                          , articleURL2Title
                          , getArticleLinks
+                         , getArticleLinksAbs
                          , getArticleImages
                          , sanitizeArticle
                          , sanitizeFileName
@@ -21,7 +22,6 @@ import Data.Maybe (catMaybes, mapMaybe, fromJust)
 
 data WikiArticle = WikiArticleHTML { waTitle :: String, waContent :: String } 
                  | WikiArticleSRC  { waTitle :: String, waContent :: String } deriving (Show, Ord, Eq)
-
 
 sanitizeFileName :: FilePath -> FilePath
 sanitizeFileName cs = map (unPercent) $ urlEncode cs
@@ -50,6 +50,11 @@ getArticleLinks xs = let inTags = parseTags (waContent xs)
                          aTags = filter (isTagOpenName "a") inTags
                          hrefs = map (fromAttrib "href") aTags 
                      in mapMaybe importURL $ nub $ filter (=~ "^/wiki/[^:/]+$") hrefs
+
+getArticleLinksAbs :: WikiArticle -> [URL]
+getArticleLinksAbs xs = let ys = getArticleLinks xs
+                            toAbsURL (URL _ path params) = (URL (Absolute (Host (HTTP False) "en.wikipedia.org" Nothing)) path params)
+                        in map toAbsURL ys
                     
 -- http://en.wikipedia.org/w/index.php?title=Computer&printable=yes
 articleURL2PrintURL :: URL -> URL
