@@ -47,6 +47,11 @@ Library
 
   Exposed-modules:
         Wiki4e.Commands
+        Wiki4e.Commands.Common
+        Wiki4e.Commands.Articles
+        Wiki4e.Commands.Images
+        Wiki4e.Commands.Fetching
+        Wiki4e.Commands.EPUB
         Network.Wikipedia
         Web.Firefox
 
