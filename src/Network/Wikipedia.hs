@@ -45,8 +45,8 @@ isArticleImgURL cs = cs =~ "^http://upload.wikimedia.org/.*"
 getArticleImages :: WikiArticle -> [URL]
 getArticleImages x = let inTags = parseTags (waContent x)
                          imgTags = filter (isTagOpenName "img") inTags
-                         imgSrcs = filter (isArticleImgURL) $ map (fromAttrib "src") imgTags 
-                     in mapMaybe importURL imgSrcs
+                         imgSrcs = filter (isArticleImgURL) (map (fromAttrib "src") imgTags)
+                     in imgSrcs `seq` mapMaybe importURL imgSrcs
 
 getArticleLinks :: WikiArticle -> [URL]
 getArticleLinks xs = let inTags = parseTags (waContent xs)

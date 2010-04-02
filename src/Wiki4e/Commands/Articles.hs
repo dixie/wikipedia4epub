@@ -53,14 +53,15 @@ wiki4e_sanitizeArticles config arts = do
 wiki4e_listArticleImages :: FilePath -> IO [URL]
 wiki4e_listArticleImages x = do
           c <- readFileUTF8 x
-          return $ nub $ getArticleImages (WikiArticleHTML "" c)
+          let imgs = nub (getArticleImages (WikiArticleHTML "" c))
+          putStrLn ((show $ length imgs) ++ " images at "++x)
+          return $! (imgs `seq` imgs)
 
 -- | Method expects already sanitized articles
 wiki4e_listArticlesImages :: Wiki4eConfig -> [URL] -> IO [URL]
-wiki4e_listArticlesImages config urls = do 
-     let files = wiki4e_getArticleFiles config urls
-     images <- mapM (wiki4e_listArticleImages) files
-     return $ nub $ concat images
+wiki4e_listArticlesImages config urls = do
+     images <- mapM (wiki4e_listArticleImages) (wiki4e_getArticleFiles config urls)
+     return $! nub (images `seq` concat images)
 
 wiki4e_crawlArticlesLinks :: Wiki4eConfig -> [URL] -> Int -> IO [URL]
 wiki4e_crawlArticlesLinks _ _  0 = return []
