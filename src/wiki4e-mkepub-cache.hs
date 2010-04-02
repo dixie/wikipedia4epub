@@ -26,14 +26,15 @@ usageHelp name = putStrLn $ "Usage: " ++ name ++ " [<Title Name of new e-book>]"
 cache2epub bookName = do
   config <- wiki4e_initConfig
   arts <- wiki4e_listCacheURLs config
-  putStrLn "# STAGE 1/4 - Verify Articles..."
+  putStrLn "# STAGE 1/5 - Verify Articles..."
   wiki4e_fetchArticles config arts
-  putStrLn "# STAGE 2/4 - Sanitize Articles..."
+  putStrLn "# STAGE 2/5 - Sanitize Articles..."
   wiki4e_sanitizeArticles config arts
-  putStrLn "# STAGE 3/4 - Download Images..."
+  putStrLn "# STAGE 3/5 - Inspect Articles for Images..."
   imgs <- wiki4e_listArticlesImages config arts
+  putStrLn "# STAGE 4/5 - Download Images..."
   wiki4e_fetchImages config imgs
-  putStrLn "# STAGE 4/4 - Constructing EPUB..."
+  putStrLn "# STAGE 5/5 - Constructing EPUB..."
   wiki4e_createEpub config bookName arts imgs
   putStrLn "Done."
 
