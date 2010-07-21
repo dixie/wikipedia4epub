@@ -35,6 +35,7 @@ articleURL2Title x | isArticleURL x = sanitizeFileName (takeFileName (url_path x
                    | otherwise      = ""
 
 articleRelURL2Title :: String -> String 
+articleRelURL2Title ('#':xs) = '#':xs
 articleRelURL2Title x = case importURL ("http://en.wikipedia.org"++x) of 
                           Nothing -> ""
                           Just  u -> articleURL2Title u
@@ -104,7 +105,7 @@ procHrefTags _ [] = []
 procHrefTags alnk (x:xs) | isTagOpenName "a" x = let relP   = fromAttrib "href" x
                                                      title   = articleRelURL2Title relP
                                                      imgOk  = (TagOpen "a" [("href",title)]):(procHrefTags alnk xs)
-                                                     isInBook = elem (title) alnk 
+                                                     isInBook = elem (title) alnk || ((length title) > 0 && (head title == '#'))
                                                      imgNok = let pre  = takeWhile (not . isTagCloseName "a") xs
                                                                   post = tail $ dropWhile (not . isTagCloseName "a") xs
                                                               in pre ++ (procHrefTags alnk post)
