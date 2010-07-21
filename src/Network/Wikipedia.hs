@@ -86,7 +86,7 @@ processTags alnk xs = procHrefTags alnk $ procImgTags $ map processAttrs xs
                                    | otherwise     = TagOpen s (removeStyleAttr $ removeEmptyAttr ys)
      processAttrs t = t
      removeEmptyAttr xs = filter (not . null . snd) xs 
-     removeStyleAttr xs = filter (\x -> (fst x) `notElem` ["style", "id", "class"]) xs
+     removeStyleAttr xs = filter (\x -> (fst x) `notElem` ["style", "class"]) xs
 
 
 filterAllTags tgs xs = filter (not . isTagComment) $ foldr (filterTags) xs tgs 
