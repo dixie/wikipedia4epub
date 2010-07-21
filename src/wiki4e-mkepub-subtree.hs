@@ -25,6 +25,7 @@ usageHelp name = putStrLn $ "Usage: " ++ name ++ " <Start URL>"
 subtree2epub cs l = do
   let u = fromJust $ importURL cs
   config <- wiki4e_initConfig
+  putStrLn $ "# INFO - download depth is hardcoded value = " ++ (show defaultDepth)
   putStrLn $ "# STAGE 1/4 - Fetch starting article: " ++ (exportURL u)
   arts <- wiki4e_crawlArticlesLinks config [u] l
   putStrLn $ "# STAGE 2/4 - Fetch children articles: " ++ (show (length arts))
