@@ -22,10 +22,8 @@ import Wiki4e.Commands.Common
 import Wiki4e.Commands.Fetching
 
 wiki4e_sanitizeArticle :: [String] -> FilePath -> FilePath -> IO ()
-wiki4e_sanitizeArticle alnk inf ouf = withFile inf ReadMode (\hi -> do
-          hSetEncoding hi utf8
-          withFile ouf WriteMode (\ho -> do 
-                  hSetEncoding ho utf8
+wiki4e_sanitizeArticle alnk inf ouf = withBinaryFile inf ReadMode (\hi -> do
+          withBinaryFile ouf WriteMode (\ho -> do 
                   c <- hGetContents hi
                   let a = sanitizeArticle alnk $ WikiArticleHTML "" c
                   hPutStr ho $ waContent a
