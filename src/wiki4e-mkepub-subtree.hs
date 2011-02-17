@@ -23,6 +23,7 @@ main = do
 usageHelp name = putStrLn $ "Usage: " ++ name ++ " <Start URL>"
 
 subtree2epub cs l = do
+  hSetBinaryMode stdout True
   let u = fromJust $ importURL cs
   config <- wiki4e_initConfig
   putStrLn $ "# INFO - download depth is hardcoded value = " ++ (show defaultDepth)
