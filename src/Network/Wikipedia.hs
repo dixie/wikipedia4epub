@@ -134,6 +134,7 @@ fetchRawArticle xs = do
 
 fetchArticle :: URL -> IO WikiArticle
 fetchArticle xs = do
-      rsp <- Network.HTTP.simpleHTTP (getRequest (exportURL xs))
+      rsp <- Network.HTTP.simpleHTTP (insertHeader HdrAcceptEncoding "identity" $ getRequest (exportURL xs))
+      -- rsp <- Network.HTTP.simpleHTTP (getRequest (exportURL xs))
       contents <- (getResponseBody rsp)
       return (WikiArticleHTML (articleURL2Title xs) contents)
