@@ -24,6 +24,7 @@ main = do
 usageHelp name = putStrLn $ "Usage: " ++ name ++ " [<Title Name of new e-book>]"
 
 firefox2epub bookName = do
+  hSetBinaryMode stdout True
   arts <- wiki4e_listFirefoxURLs
   config <- wiki4e_initConfig
   putStrLn "# STAGE 1/4 - Download Articles..."

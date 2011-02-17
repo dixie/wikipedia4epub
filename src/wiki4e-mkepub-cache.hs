@@ -24,6 +24,7 @@ main = do
 usageHelp name = putStrLn $ "Usage: " ++ name ++ " [<Title Name of new e-book>]"
 
 cache2epub bookName = do
+  hSetBinaryMode stdout True
   config <- wiki4e_initConfig
   arts <- wiki4e_listCacheURLs config
   putStrLn "# STAGE 1/5 - Verify Articles..."
