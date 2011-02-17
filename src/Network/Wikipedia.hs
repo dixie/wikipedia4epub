@@ -22,9 +22,7 @@ data WikiArticle = WikiArticleHTML { waTitle :: String, waContent :: String }
                  | WikiArticleSRC  { waTitle :: String, waContent :: String } deriving (Show, Ord, Eq)
 
 sanitizeFileName :: FilePath -> FilePath
-sanitizeFileName cs = map (unPercent) $ urlEncode cs
-    where
-      unPercent c = if (c == '%' || c == ':') then 'X' else c
+sanitizeFileName cs = makeValid cs
 
 isArticleURL :: URL -> Bool
 isArticleURL (URL (Absolute (Host (HTTP False) xs Nothing)) ph []) = (xs =~ ".*en[.]wikipedia.org$") && (ph =~ "wiki/[^/]+$" )
