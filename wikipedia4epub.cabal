@@ -56,7 +56,14 @@ Library
         Network.Wikipedia
         Web.Firefox
 
+Executable wiki4e-mkepub-firefox
+  Hs-Source-Dirs:  src
+  Main-Is:         wiki4e-mkepub-firefox.hs
+
 Executable wiki4e-mkepub-subtree
   Hs-Source-Dirs:  src
   Main-Is:         wiki4e-mkepub-subtree.hs
 
+Executable wiki4e-mkepub-cache
+  Hs-Source-Dirs:  src
+  Main-Is:         wiki4e-mkepub-cache.hs
