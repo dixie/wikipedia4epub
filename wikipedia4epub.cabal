@@ -39,6 +39,7 @@ Library
                    tagsoup >= 0.8,
                    HTTP,      
                    zip-archive,
+                   zlib,
                    xml,
                    Cabal        >= 1.5 && < 1.9
   Hs-Source-Dirs:  src

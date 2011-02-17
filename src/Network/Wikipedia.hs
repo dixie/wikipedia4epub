@@ -17,6 +17,10 @@ import Text.HTML.TagSoup
 import System.FilePath
 import Data.List (nub)
 import Data.Maybe (mapMaybe, fromJust)
+import Data.Either
+import qualified Data.ByteString.Lazy.Char8 as BC
+import qualified Data.ByteString.Lazy as ByteString
+import qualified Codec.Compression.GZip as GZip
 
 data WikiArticle = WikiArticleHTML { waTitle :: String, waContent :: String } 
                  | WikiArticleSRC  { waTitle :: String, waContent :: String } deriving (Show, Ord, Eq)
@@ -135,4 +139,8 @@ fetchArticle xs = do
       rsp <- Network.HTTP.simpleHTTP (insertHeader HdrAcceptEncoding "identity" $ getRequest (exportURL xs))
       -- rsp <- Network.HTTP.simpleHTTP (getRequest (exportURL xs))
       contents <- (getResponseBody rsp)
-      return (WikiArticleHTML (articleURL2Title xs) contents)
+      let header = either (\_ -> []) rspHeaders rsp
+      let fincts = case lookupHeader HdrContentEncoding header of 
+                       Nothing -> contents
+                       Just mm -> if mm == "gzip" then BC.unpack (GZip.decompress (BC.pack contents)) else contents
+      return (WikiArticleHTML (articleURL2Title xs) fincts)
