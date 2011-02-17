@@ -18,6 +18,7 @@ import System.FilePath
 import Data.List (nub)
 import Data.Maybe (mapMaybe, fromJust)
 import Data.Either
+import Data.Char
 import qualified Data.ByteString.Lazy.Char8 as BC
 import qualified Data.ByteString.Lazy as ByteString
 import qualified Codec.Compression.GZip as GZip
@@ -26,7 +27,10 @@ data WikiArticle = WikiArticleHTML { waTitle :: String, waContent :: String }
                  | WikiArticleSRC  { waTitle :: String, waContent :: String } deriving (Show, Ord, Eq)
 
 sanitizeFileName :: FilePath -> FilePath
-sanitizeFileName cs = makeValid cs
+sanitizeFileName cs = map removeNonAscii $ makeValid cs
+  where
+    removeNonAscii z | isAscii z = z
+                     | otherwise = '_'
 
 isArticleURL :: URL -> Bool
 isArticleURL (URL (Absolute (Host (HTTP False) xs Nothing)) ph []) = (xs =~ ".*en[.]wikipedia.org$") && (ph =~ "wiki/[^/]+$" )
