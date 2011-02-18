@@ -33,6 +33,7 @@ wiki4e_initConfig = do
 readFileUTF8 :: FilePath -> IO String
 readFileUTF8 x = do
           h <- openBinaryFile x ReadMode
+          hSetEncoding h utf8
           c <- hGetContents h
           forceList c `seq` hClose h
           return c
