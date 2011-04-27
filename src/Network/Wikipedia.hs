@@ -33,7 +33,7 @@ sanitizeFileName cs = map removeNonAscii $ makeValid cs
                      | otherwise = '_'
 
 isArticleURL :: URL -> Bool
-isArticleURL (URL (Absolute (Host (HTTP False) xs Nothing)) ph []) = (xs =~ ".*en[.]wikipedia.org$") && (ph =~ "wiki/[^/]+$" )
+isArticleURL (URL (Absolute (Host (HTTP False) xs Nothing)) ph []) = (xs =~ ".*en.wikipedia.org") && (ph =~ "wiki/.*")
 isArticleURL _ = False
 
 articleURL2Title :: URL -> String
