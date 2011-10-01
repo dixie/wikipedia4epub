@@ -33,17 +33,16 @@ sanitizeFileName cs = map removeNonAscii $ makeValid cs
                      | otherwise = '_'
 
 isArticleURL :: URL -> Bool
-isArticleURL (URL (Absolute (Host (HTTP False) xs Nothing)) ph []) = (xs =~ ".*en.wikipedia.org") && (ph =~ "wiki/.*")
+isArticleURL (URL (Absolute (Host (HTTP False) xs Nothing)) ph []) = (xs =~ ".*[.]wikipedia.org") && (ph =~ "wiki/.*")
 isArticleURL _ = False
 
 articleURL2Title :: URL -> String
-articleURL2Title x | isArticleURL x = sanitizeFileName (takeFileName (url_path x))
-                   | otherwise      = ""
+articleURL2Title x = sanitizeFileName (takeFileName (url_path x))
 
 articleRelURL2Title :: String -> String 
 articleRelURL2Title ('#':xs) = '#':xs
-articleRelURL2Title x = case importURL ("http://en.wikipedia.org"++x) of 
-                          Nothing -> ""
+articleRelURL2Title x = case importURL ("http://en.wikipedia.org/"++x) of 
+                          Nothing -> error $ "Invalid article relative path: "++x
                           Just  u -> articleURL2Title u
 
 isArticleImgURL :: String -> Bool
@@ -61,10 +60,11 @@ getArticleLinks xs = let inTags = parseTags (waContent xs)
                          hrefs = map (fromAttrib "href") aTags 
                      in mapMaybe importURL $ nub $ filter (=~ "^/wiki/[^:/]+$") hrefs
 
-getArticleLinksAbs :: WikiArticle -> [URL]
-getArticleLinksAbs xs = let ys = getArticleLinks xs
-                            toAbsURL (URL _ path params) = (URL (Absolute (Host (HTTP False) "en.wikipedia.org" Nothing)) path params)
-                        in map toAbsURL ys
+getArticleLinksAbs :: String -> WikiArticle -> [URL]
+getArticleLinksAbs domain xs = map toAbsURL ys
+  where
+    ys = getArticleLinks xs
+    toAbsURL (URL _ path params) = (URL (Absolute (Host (HTTP False) domain Nothing)) path params)
                     
 -- http://en.wikipedia.org/w/index.php?title=Computer&printable=yes
 {-

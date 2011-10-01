@@ -25,7 +25,10 @@ usageHelp name = putStrLn $ "Usage: " ++ name ++ " <Start URL>"
 subtree2epub cs l = do
   hSetBinaryMode stdout True
   let u = fromJust $ importURL cs
-  config <- wiki4e_initConfig
+  let domain = case url_type u of
+                 Absolute hst -> host $ hst
+                 _            -> error "Invalid URL: "++(show u)
+  config <- wiki4e_initConfig domain
   putStrLn $ "# INFO - download depth is hardcoded value = " ++ (show defaultDepth)
   putStrLn $ "# STAGE 1/4 - Fetch starting article: " ++ (exportURL u)
   arts <- wiki4e_crawlArticlesLinks config [u] l

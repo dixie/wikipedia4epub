@@ -13,14 +13,15 @@ import qualified Data.ByteString as STR
 -- | Basic configuration of the commands
 data Wiki4eConfig = Wiki4eConfig { w4confDirFetch      :: FilePath,
                                    w4confDirImg        :: FilePath,
-                                   w4confDirSanitized  :: FilePath }
+                                   w4confDirSanitized  :: FilePath, 
+                                   w4confDomain        :: String }
 
 -- Support Functions
 getWiki4eDir :: IO FilePath
 getWiki4eDir = getAppUserDataDirectory "wiki4e"
 
-wiki4e_initConfig :: IO Wiki4eConfig
-wiki4e_initConfig = do
+wiki4e_initConfig :: String -> IO Wiki4eConfig
+wiki4e_initConfig domain = do
   tmpDir <- getWiki4eDir
   let tmpDirFetch    = tmpDir </> "wiki4e_fetch"     
   let tmpDirSanitize = tmpDir </> "wiki4e_sanitize"
@@ -28,7 +29,7 @@ wiki4e_initConfig = do
   createDirectoryIfMissing True tmpDirFetch
   createDirectoryIfMissing True tmpDirSanitize
   createDirectoryIfMissing True tmpDirImgs
-  return (Wiki4eConfig tmpDirFetch tmpDirImgs tmpDirSanitize)
+  return (Wiki4eConfig tmpDirFetch tmpDirImgs tmpDirSanitize domain)
 
 readFileUTF8 :: FilePath -> IO String
 readFileUTF8 x = do

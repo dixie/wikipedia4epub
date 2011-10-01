@@ -70,7 +70,7 @@ wiki4e_crawlArticlesLinks config us (l + 1) = do
   wiki4e_fetchArticles config us
   let fs = map (outd </>) $ map (articleURL2Title) us
   as <- mapM (wiki4e_readArticle) fs
-  let xs = nub $ concat $ map getArticleLinksAbs as
+  let xs = nub $ concat $ map (getArticleLinksAbs (w4confDomain config)) as
   ys <- wiki4e_crawlArticlesLinks config xs l
   return (nub $ us++xs++ys)
     where
