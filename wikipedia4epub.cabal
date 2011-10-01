@@ -56,6 +56,7 @@ Library
 
 Executable wiki4e-mkepub-firefox
   Hs-Source-Dirs:  src
+  Buildable:     False
   Main-Is:         wiki4e-mkepub-firefox.hs
 
 Executable wiki4e-mkepub-subtree
@@ -64,4 +65,5 @@ Executable wiki4e-mkepub-subtree
 
 Executable wiki4e-mkepub-cache
   Hs-Source-Dirs:  src
+  Buildable:     False
   Main-Is:         wiki4e-mkepub-cache.hs
