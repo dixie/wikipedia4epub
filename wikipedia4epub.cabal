@@ -33,8 +33,6 @@ Library
                    regex-posix,
                    network,
                    regex-base,
-                   HDBC-sqlite3,
-                   HDBC >= 2.1.1,
                    tagsoup >= 0.8,
                    HTTP,      
                    zip-archive,
@@ -52,18 +50,8 @@ Library
         Wiki4e.Commands.Fetching
         Wiki4e.Commands.EPUB
         Network.Wikipedia
-        Web.Firefox
-
-Executable wiki4e-mkepub-firefox
-  Hs-Source-Dirs:  src
-  Buildable:     False
-  Main-Is:         wiki4e-mkepub-firefox.hs
 
 Executable wiki4e-mkepub-subtree
   Hs-Source-Dirs:  src
   Main-Is:         wiki4e-mkepub-subtree.hs
 
-Executable wiki4e-mkepub-cache
-  Hs-Source-Dirs:  src
-  Buildable:     False
-  Main-Is:         wiki4e-mkepub-cache.hs
