@@ -20,7 +20,7 @@ Cabal-Version:   >= 1.6
 
 Source-Repository head
   type:     darcs
-  location: http://patch-tag.com/r/dixiecko/wikipedia4epub
+  location: http://darcsden.com/dixie/wikipedia4epub
     
 Library
   Build-Depends:   base < 5,
