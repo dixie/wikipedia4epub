@@ -17,10 +17,8 @@ import Text.HTML.TagSoup
 import System.FilePath
 import Data.List (nub)
 import Data.Maybe (mapMaybe, fromJust)
-import Data.Either
 import Data.Char
 import qualified Data.ByteString.Lazy.Char8 as BC
-import qualified Data.ByteString.Lazy as ByteString
 import qualified Codec.Compression.GZip as GZip
 
 data WikiArticle = WikiArticleHTML { waTitle :: String, waContent :: String } 
@@ -86,14 +84,14 @@ sanitizeArticle alnk xs = let inTags = parseTags (waContent xs)
 
 processTags alnk xs = procHrefTags alnk $ procImgTags $ map processAttrs xs
    where
-     processAttrs t@(TagOpen  "div" _) = TagText ""
-     processAttrs t@(TagClose "div") = TagText ""
+     processAttrs (TagOpen  "div" _) = TagText ""
+     processAttrs (TagClose "div") = TagText ""
      processAttrs t@(TagOpen s ys) | null s        = t
                                    | head s == '!' = t
                                    | otherwise     = TagOpen s (removeStyleAttr $ removeEmptyAttr ys)
      processAttrs t = t
-     removeEmptyAttr xs = filter (not . null . snd) xs 
-     removeStyleAttr xs = filter (\x -> (fst x) `notElem` ["style", "class"]) xs
+     removeEmptyAttr = filter (not . null . snd)
+     removeStyleAttr = filter (\x -> (fst x) `notElem` ["style", "class"])
 
 
 filterAllTags tgs xs = filter (not . isTagComment) $ foldr (filterTags) xs tgs 
@@ -101,7 +99,7 @@ filterAllTags tgs xs = filter (not . isTagComment) $ foldr (filterTags) xs tgs
 isTagComment (TagComment _) = True
 isTagComment _              = False
 
-filterTags tn [] = []
+filterTags _ [] = []
 filterTags tn (x:xs) | isTagOpenName tn x  = filterTags tn $ dropWhile (not . isTagCloseName tn) xs
                      | isTagCloseName tn x = filterTags tn xs
                      | otherwise           = x:filterTags tn xs
