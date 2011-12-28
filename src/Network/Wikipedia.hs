@@ -40,7 +40,7 @@ articleURL2Title x = sanitizeFileName (takeFileName (url_path x))
 articleRelURL2Title :: String -> String 
 articleRelURL2Title ('#':xs) = '#':xs
 articleRelURL2Title x = case importURL ("http://en.wikipedia.org/"++x) of 
-                          Nothing -> error $ "Invalid article relative path: "++x
+                          Nothing -> "invalid-article" -- > Ingore invalid relative paths
                           Just  u -> articleURL2Title u
 
 isArticleImgURL :: String -> Bool
