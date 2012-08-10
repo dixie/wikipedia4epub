@@ -26,7 +26,6 @@ Library
   Build-Depends:   base < 5,
                    filepath,
                    bytestring,
-                   haskell98,
                    url,
                    directory,
                    epub,

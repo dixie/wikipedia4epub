@@ -1,3 +1,5 @@
+module Main where
+
 import Text.HTML.TagSoup
 import System.Environment
 import System.Directory
